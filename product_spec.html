@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Aplazo Payment Orchestrator — Product Spec</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f5f6f8;
+    color: #1a1a2e;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 0;
+  }
+  .doc {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 32px 40px 64px;
+  }
+
+  .doc-header {
+    background: #1a1a2e;
+    color: white;
+    border-radius: 12px;
+    padding: 28px 32px 24px;
+    margin-bottom: 32px;
+  }
+  .doc-header .tag {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #7ec8e3;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .doc-header h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+  .doc-header .subtitle { font-size: 13px; color: #b0b8d0; }
+  .meta-row { display: flex; gap: 24px; margin-top: 18px; flex-wrap: wrap; }
+  .meta-item { font-size: 12px; color: #8898b0; }
+  .meta-item strong { color: #d0daf0; }
+
+  .nav {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: white;
+    border-radius: 10px;
+    padding: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    flex-wrap: wrap;
+  }
+  .nav button {
+    flex: 1;
+    min-width: 90px;
+    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    border-radius: 7px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .nav button.active { background: #1a1a2e; color: white; }
+  .nav button:hover:not(.active) { background: #f0f1f5; color: #1a1a2e; }
+
+  .section { display: none; }
+  .section.active { display: block; }
+
+  .card {
+    background: white;
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .card h2 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card h2 .icon {
+    width: 26px; height: 26px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .card p { color: #444; margin-bottom: 8px; }
+  .card p:last-child { margin-bottom: 0; }
+
+  .label {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 10px;
+  }
+  .label.blue   { background: #dbeafe; color: #1d4ed8; }
+  .label.green  { background: #dcfce7; color: #166534; }
+  .label.orange { background: #ffedd5; color: #9a3412; }
+  .label.red    { background: #fee2e2; color: #991b1b; }
+  .label.purple { background: #ede9fe; color: #5b21b6; }
+  .label.gray   { background: #f3f4f6; color: #374151; }
+
+  .flow { display: flex; align-items: center; gap: 0; flex-wrap: wrap; margin: 16px 0; }
+  .flow-box {
+    background: #f0f4ff;
+    border: 1.5px solid #c7d4f8;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #2c3e7a;
+    text-align: center;
+    min-width: 100px;
+  }
+  .flow-box.green { background: #f0fdf4; border-color: #86efac; color: #166534; }
+  .flow-box.red   { background: #fff1f2; border-color: #fca5a5; color: #991b1b; }
+  .flow-box.gold  { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+  .flow-arrow { font-size: 16px; color: #94a3b8; padding: 0 6px; flex-shrink: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  th {
+    background: #f8f9fb;
+    padding: 8px 12px;
+    text-align: left;
+    font-weight: 700;
+    color: #374151;
+    border-bottom: 2px solid #e5e7eb;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  td { padding: 9px 12px; border-bottom: 1px solid #f0f1f4; color: #374151; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbff; }
+  td .ok   { font-weight: 700; color: #16a34a; }
+  td .warn { font-weight: 700; color: #dc2626; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .kpi-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin: 16px 0; }
+  .kpi { background: #f8f9fb; border-radius: 8px; padding: 14px 12px; text-align: center; }
+  .kpi .val { font-size: 22px; font-weight: 800; color: #1a1a2e; }
+  .kpi .lbl { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+  .callout {
+    border-left: 4px solid;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  .callout.blue  { border-color: #3b82f6; background: #eff6ff; color: #1e40af; }
+  .callout.amber { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+  .callout.green { border-color: #22c55e; background: #f0fdf4; color: #166534; }
+  .callout.red   { border-color: #ef4444; background: #fef2f2; color: #991b1b; }
+
+  .knob-track {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(to right, #22c55e, #f59e0b, #ef4444);
+    margin: 16px 0 8px;
+  }
+  .knob-labels { display: flex; justify-content: space-between; font-size: 11px; color: #6b7280; }
+
+  .step-row { display: flex; gap: 12px; margin-bottom: 10px; align-items: flex-start; }
+  .step-num {
+    border-radius: 50%;
+    width: 28px; height: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; flex-shrink: 0; font-size: 13px;
+  }
+
+  code {
+    background: #f3f4f6;
+    border-radius: 4px;
+    padding: 1px 6px;
+    font-family: "SF Mono", monospace;
+    font-size: 12px;
+    color: #b91c1c;
+  }
+  ul.spaced { padding-left: 18px; }
+  ul.spaced li { margin-bottom: 6px; }
+  .muted { color: #6b7280; font-size: 12px; }
+
+  /* PSP profile cards */
+  .psp-card {
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+    border: 1.5px solid;
+  }
+  .psp-card.primary  { background: #f0fdf4; border-color: #86efac; }
+  .psp-card.secondary{ background: #eff6ff; border-color: #93c5fd; }
+  .psp-card.warning  { background: #fffbeb; border-color: #fcd34d; }
+  .psp-card.danger   { background: #fef2f2; border-color: #fca5a5; }
+  .psp-card .psp-name{ font-size: 18px; font-weight: 800; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .psp-card .psp-role{ font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.7; margin-bottom: 10px; }
+  .psp-card .psp-stats{ display: flex; gap: 20px; margin: 10px 0; flex-wrap: wrap; }
+  .psp-card .stat { text-align: center; }
+  .psp-card .stat .val { font-size: 20px; font-weight: 800; }
+  .psp-card .stat .lbl { font-size: 10px; color: #6b7280; }
+  .psp-card .psp-note { font-size: 12.5px; margin-top: 8px; line-height: 1.5; }
+  .psp-card .why-row  { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+  .psp-card .why-tag  { background: rgba(0,0,0,0.06); border-radius: 20px; padding: 2px 10px; font-size: 11px; font-weight: 600; }
+
+  /* Panel prep */
+  .qa-card {
+    background: white;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    overflow: hidden;
+  }
+  .qa-header {
+    padding: 14px 18px;
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    user-select: none;
+  }
+  .qa-header:hover { background: #fafbff; }
+  .qa-num {
+    background: #1a1a2e;
+    color: white;
+    border-radius: 50%;
+    width: 24px; height: 24px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 800;
+    flex-shrink: 0; margin-top: 1px;
+  }
+  .qa-num.orange { background: #f59e0b; }
+  .qa-num.red    { background: #ef4444; }
+  .qa-num.green  { background: #16a34a; }
+  .qa-question { font-weight: 700; font-size: 13px; flex: 1; line-height: 1.4; }
+  .qa-category { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #6b7280; margin-top: 3px; }
+  .qa-body {
+    padding: 0 18px 16px 54px;
+    display: none;
+    border-top: 1px solid #f0f1f4;
+    padding-top: 14px;
+  }
+  .qa-body.open { display: block; }
+  .qa-where {
+    background: #f1f5f9;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 10px;
+    display: inline-block;
+  }
+  .qa-script {
+    background: #f8f9fb;
+    border-left: 3px solid #1a1a2e;
+    border-radius: 0 6px 6px 0;
+    padding: 12px 14px;
+    font-size: 13px;
+    line-height: 1.7;
+    color: #1e293b;
+  }
+  .qa-tip {
+    background: #fffbeb;
+    border-left: 3px solid #f59e0b;
+    border-radius: 0 6px 6px 0;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #92400e;
+    margin-top: 8px;
+  }
+  .expand-all-btn {
+    background: #1a1a2e;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .expand-all-btn:hover { background: #2d2d4e; }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <div class="doc-header">
+    <div class="tag">Product Specification · v1.0</div>
+    <h1>Aplazo Payment Orchestrator</h1>
+    <div class="subtitle">A data-driven engine that decides which payment processor to use — and when to stop trying — for every loan installment collection.</div>
+    <div class="meta-row">
+      <div class="meta-item"><strong>Company</strong> Aplazo (BNPL, Mexico)</div>
+      <div class="meta-item"><strong>Scope</strong> Card transactions only</div>
+      <div class="meta-item"><strong>Data</strong> 5.9M events, March 2026</div>
+      <div class="meta-item"><strong>Status</strong> Prototype</div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="active" onclick="show('overview', this)">Overview</button>
+    <button onclick="show('problem', this)">The Problem</button>
+    <button onclick="show('data', this)">Data & Findings</button>
+    <button onclick="show('engine', this)">The Engine</button>
+    <button onclick="show('constraints', this)">Constraints</button>
+    <button onclick="show('features', this)">Features</button>
+    <button onclick="show('glossary', this)">Glossary</button>
+    <button onclick="show('psps', this)">PSP Profiles</button>
+    <button onclick="show('blindspots', this)">⚠ Blind Spots</button>
+    <button onclick="show('panelprep', this)">🎤 Panel Prep</button>
+  </div>
+
+  <!-- OVERVIEW -->
+  <div id="overview" class="section active">
+    <div class="callout blue">
+      <strong>One sentence:</strong> Aplazo collects loan payments from customers' cards — this orchestrator automatically picks the best payment processor for each transaction to maximize the chance of success while minimizing fees.
+    </div>
+    <div class="kpi-row">
+      <div class="kpi"><div class="val">4</div><div class="lbl">Payment processors (PSPs)</div></div>
+      <div class="kpi"><div class="val">82.5%</div><div class="lbl">Installments eventually collected</div></div>
+      <div class="kpi"><div class="val">26.3%</div><div class="lbl">First-attempt approval rate</div></div>
+      <div class="kpi"><div class="val">47%</div><div class="lbl">Transactions run via overnight batch</div></div>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#dbeafe">🏗️</span> What was built</h2>
+      <div class="grid-2">
+        <div>
+          <div class="label blue">Step 1 — Analysis</div>
+          <p><strong>step1_baseline.py</strong><br>Cleans 5.9M rows of raw payment events and produces approval rate breakdowns by PSP, card issuer, gateway, amount tier, time of day, and retry number.</p>
+        </div>
+        <div>
+          <div class="label purple">Step 1b — Deep Dive</div>
+          <p><strong>step1b_deep_dive.py</strong><br>Uncovers hidden patterns: credit vs debit split per PSP, volume concentration risk, which PSP wins for each bank, and whether switching PSPs on retry actually helps.</p>
+        </div>
+        <div>
+          <div class="label green">Step 2+3 — Engine</div>
+          <p><strong>orchestrator.py</strong><br>A Python class that receives one transaction and returns: which PSP to use, whether to retry, how many times, and when to stop — with a fee estimate.</p>
+        </div>
+        <div>
+          <div class="label orange">Step 4 — Interface</div>
+          <p><strong>app.py</strong><br>A Streamlit web app where you can simulate any transaction interactively and see the orchestrator's reasoning in real time, without touching code.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#f0fdf4">🔄</span> How a payment flows through the orchestrator</h2>
+      <div class="flow">
+        <div class="flow-box">Installment due</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Transaction payload<br><span style="font-size:10px;color:#64748b">amount · issuer · gateway · attempt#</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box gold">Orchestrator<br><span style="font-size:10px;color:#92400e">scores PSPs</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green">Route to best PSP</div>
+      </div>
+      <div class="flow" style="margin-top:8px">
+        <div class="flow-box red">Declined?</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Check error type</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box red">Hard decline?<br><span style="font-size:10px">No funds / Fraud</span></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box red">STOP. No retry.</div>
+      </div>
+      <div class="flow" style="margin-top:4px">
+        <div class="flow-box" style="opacity:0;min-width:100px"></div>
+        <div class="flow-arrow" style="opacity:0">→</div>
+        <div class="flow-box">Soft decline?</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green">Retry on next PSP</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box">Up to attempt cap</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBLEM -->
+  <div id="problem" class="section">
+    <div class="card">
+      <h2><span class="icon" style="background:#fee2e2">❓</span> What is Aplazo?</h2>
+      <p>Aplazo is a <strong>Buy Now, Pay Later (BNPL)</strong> platform in Mexico. A customer buys something at a store — say, a $3,000 MXN phone — and instead of paying the full amount, they pay in installments: maybe 6 payments of $500 MXN each, once a month.</p>
+      <p>Aplazo pays the merchant upfront and then collects those installments from the customer's debit or credit card automatically, every month, until the loan is repaid.</p>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#ffedd5">💳</span> What is a Payment Service Provider (PSP)?</h2>
+      <p>To charge a customer's card, Aplazo doesn't connect directly to Visa or Mastercard. Instead, it works through <strong>intermediary companies called PSPs</strong> that handle the technical connection to the banking network. Think of them like shipping carriers: they all deliver the same package (the charge), but with different prices and reliability depending on the destination (the bank).</p>
+      <table style="margin-top:12px">
+        <thead><tr><th>PSP</th><th>Fee on approved txn</th><th>Overall approval rate</th><th>BIN data available?</th></tr></thead>
+        <tbody>
+          <tr><td><code>psp-c</code></td><td class="ok">1.55% ← cheapest</td><td class="ok">73.4% ← best</td><td class="ok">Yes</td></tr>
+          <tr><td><code>psp-e</code></td><td>1.68%</td><td>55.8%</td><td class="ok">Yes</td></tr>
+          <tr><td><code>psp-o</code></td><td>1.58%</td><td>49.8%</td><td class="warn">No</td></tr>
+          <tr><td><code>psp-d</code></td><td class="warn">1.69% ← most expensive</td><td class="warn">33.0% ← worst</td><td class="warn">No</td></tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top:8px">Fees only apply when a transaction is approved. A declined transaction costs no fee — but wastes operational effort.</p>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#ede9fe">⚠️</span> The actual problem: static routing</h2>
+      <p>Before this project, Aplazo's system had <strong>no intelligence about which PSP to use</strong>. Every transaction went to the same PSP by default, regardless of which bank issued the card, whether it's a batch run or user-initiated, whether the error guarantees failure, or how many retries have already happened.</p>
+      <div class="callout amber" style="margin-top:14px">
+        <strong>The consequence:</strong> Aplazo was sending ~55% of all traffic to psp-o (49.8% AR) while psp-c (73.4% AR, cheaper fee) was underutilized. Money was being left on the table on every billing cycle.
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA & FINDINGS -->
+  <div id="data" class="section">
+    <div class="card">
+      <h2><span class="icon" style="background:#dbeafe">📂</span> The 3 data sources</h2>
+      <table>
+        <thead><tr><th>File</th><th>Rows</th><th>What it contains</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>payment_events-march2026.csv</code></td><td>5.9M</td>
+            <td>Every payment attempt: card, PSP, outcome, error, amount</td>
+            <td>All approval rate calculations, retry analysis</td>
+          </tr>
+          <tr>
+            <td><code>loans_data-march2026.csv</code></td><td>1.1M</td>
+            <td>Loan metadata: total amount, installments, merchant, status</td>
+            <td>Installment-level context</td>
+          </tr>
+          <tr>
+            <td><code>bins_data.csv</code></td><td>1,282</td>
+            <td>Maps card BIN numbers to issuing bank, card type, brand</td>
+            <td>Knowing which bank issued the card for routing</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted" style="margin-top:8px">A <strong>BIN</strong> is the first 6–8 digits of a card number — they publicly identify which bank issued it. Only 21.3% of card rows matched a BIN entry.</p>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#f0fdf4">🔍</span> Key findings from the data — and why each one matters</h2>
+      <p style="color:#64748b;margin-bottom:18px">Each finding below drove a specific design decision in the orchestrator. The "So we built" line is the direct consequence of the data.</p>
+
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:14px">
+        <div class="label green">Finding 1 — The most important PSP is the one Aplazo uses the least</div>
+        <p style="margin-top:8px">psp-c has the <strong>best approval rate (73.4%)</strong> and the <strong>lowest fee (1.55%)</strong> — it wins on every dimension. But legacy routing sends only 18.8% of traffic there and dumps 54.8% on psp-o, which approves less than half of transactions (49.8%).</p>
+        <p style="margin-top:8px;color:#64748b"><strong>In plain terms:</strong> Imagine you have four checkout lanes at a supermarket. Lane C is the fastest and cheapest. The current system sends most customers to Lane O, which is slow and expensive. Nobody decided this — it's just how the static rules were written. The orchestrator fixes the default.</p>
+        <div class="callout amber" style="margin-top:10px"><strong>So we built:</strong> A scoring engine that routes to psp-c first by default, and only uses psp-o and psp-d as fallbacks — not as primary lanes.</div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:14px">
+        <div class="label blue">Finding 2 — The bank that issued the card matters more than the PSP you choose</div>
+        <p style="margin-top:8px">The same card issuer can get completely different results depending on which PSP processes it. Nu MX cards: <strong>81.2% approval on psp-c</strong> but only <strong>15.8% on psp-e</strong>. Banco Mercantil del Norte cards: <strong>60.7% on psp-c</strong> but <strong>68.5% on psp-e</strong> — psp-e actually wins here.</p>
+        <p style="margin-top:8px;color:#64748b"><strong>In plain terms:</strong> It's like knowing that Airline A is great for domestic flights but always delays internationals, while Airline B is the opposite. The right choice depends on your destination — not just which airline is "better overall." The card's bank is the destination.</p>
+        <div class="callout amber" style="margin-top:10px"><strong>So we built:</strong> An issuer × PSP matrix. For every transaction where we know the card's bank, we route to the PSP with the highest historical approval rate for that specific bank — not the highest average overall.</div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:14px">
+        <div class="label purple">Finding 3 — Overnight batch payments are a completely different problem</div>
+        <p style="margin-top:8px"><strong>47% of all transactions</strong> run automatically at night (called "cron batch"). Their approval rate is <strong>30.4%</strong> — vs. <strong>78.8%</strong> when a user is actively at checkout. psp-e is especially bad for these: 29–35% approval on batch.</p>
+        <p style="margin-top:8px;color:#64748b"><strong>In plain terms:</strong> When a customer is at checkout, they can fix problems in real time — change cards, top up their account, call their bank. At 3am when the batch runs, nobody is watching. If the card fails, it just fails. Retrying 5 times at 3am on a card that drained at midnight is pure waste.</p>
+        <div class="callout amber" style="margin-top:10px"><strong>So we built:</strong> A separate rule set for cron transactions — max 3 attempts instead of 5, psp-e is excluded entirely, and the retry window is tighter. Cron and checkout are not the same product.</div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:14px">
+        <div class="label orange">Finding 4 — Switching payment processor on retry does absolutely nothing</div>
+        <p style="margin-top:8px">We analyzed over 500,000 retry attempts. Same PSP retry: <strong>50.6% approval</strong>. Switched to a different PSP: <strong>50.5% approval</strong>. The difference is 0.1 percentage points — statistically zero.</p>
+        <p style="margin-top:8px;color:#64748b"><strong>In plain terms:</strong> The whole industry assumes "if PSP A fails, try PSP B." The data says that's wrong. Whether a payment succeeds on retry depends on the <em>type of error</em>, not which company processes the retry. A declined card is a declined card — it doesn't matter who declines it the second time.</p>
+        <div class="callout amber" style="margin-top:10px"><strong>So we built:</strong> A system focused entirely on getting the first routing decision right, not on building smarter cascade logic. Retry is a safety net, not a strategy.</div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px;margin-bottom:14px">
+        <div class="label red">Finding 5 — Nearly a million failures per month have zero chance of ever succeeding</div>
+        <p style="margin-top:8px"><strong>771,000 transactions</strong> per month fail with "insufficient funds" and show <strong>0% recovery rate</strong> on the next attempt. The system was retrying them anyway — paying a transaction fee each time.</p>
+        <p style="margin-top:8px;color:#64748b"><strong>In plain terms:</strong> If someone's bank account is empty, trying to charge the card again in the next hour will not fill the account. Every retry costs Aplazo a fee. We were paying to confirm what we already knew.</p>
+        <div class="callout amber" style="margin-top:10px"><strong>So we built:</strong> A hard stop list. If the error message signals a permanent problem — empty account, stolen card, fraud flag — the orchestrator stops immediately and does not try again. No fee wasted. This is the single highest-ROI rule in the entire system.</div>
+      </div>
+
+      <div style="border:1px solid #e2e8f0;border-radius:10px;padding:18px 20px">
+        <div class="label gray">Finding 6 — Manual agent retries are a behavioral problem, not a routing problem</div>
+        <p style="margin-top:8px">The <code>admin-dashboard</code> channel — where Aplazo agents manually trigger payment retries — has only <strong>8.2% approval rate</strong>. The top error is "insufficient funds" — repeated, over and over.</p>
+        <p style="margin-top:8px;color:#64748b"><strong>In plain terms:</strong> Agents are retrying cards belonging to customers who are already 2–3 payments behind. Those customers have either no money in the account or have blocked the card. No PSP will approve it. The problem is not which processor the agent uses — the problem is that a card is the wrong payment channel for this customer at this moment.</p>
+        <div class="callout amber" style="margin-top:10px"><strong>So we built (v1):</strong> The hard decline interceptor also covers agent retries — it stops the loop. <strong>What's coming (v1.5):</strong> After 2 agent-dashboard failures on the same card, automatically send the customer a SPEI payment link via WhatsApp. That reaches a different funding source entirely and breaks the dead-card loop.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ENGINE -->
+  <div id="engine" class="section">
+    <div class="card">
+      <h2><span class="icon" style="background:#ede9fe">⚡</span> How the PaymentOrchestrator class works</h2>
+      <p>The orchestrator takes one transaction as input and returns one decision as output. It runs three checks in sequence:</p>
+      <div style="margin:16px 0">
+        <div class="step-row">
+          <div class="step-num" style="background:#fee2e2">1</div>
+          <div><strong>Hard Decline Check</strong><br><span style="color:#555">Is the error one that will never recover? ("insufficient funds", "fraud detected", "card expired"). If yes → stop immediately, no fee wasted.</span></div>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#ffedd5">2</div>
+          <div><strong>Retry Cap Check</strong><br><span style="color:#555">Has this installment been attempted too many times? Normal: max 5. Cron: max 3. Critically low issuers (Bradescard, Liverpool): max 2.</span></div>
+        </div>
+        <div class="step-row">
+          <div class="step-num" style="background:#dcfce7">3</div>
+          <div><strong>PSP Scoring</strong><br><span style="color:#555">Score every PSP using a weighted blend of cost efficiency and issuer-specific approval rate. The blend ratio is controlled by The Knob.</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#fffbeb">🎛️</span> The Knob — the core control parameter</h2>
+      <p>A single number between <strong>0.0 and 1.0</strong> that controls what the orchestrator optimizes for:</p>
+      <div class="knob-track"></div>
+      <div class="knob-labels">
+        <span><strong>0.0</strong> — Minimize cost<br>Route to cheapest PSP (psp-c 1.55%)</span>
+        <span style="text-align:center"><strong>0.5</strong><br>Balanced (recommended)</span>
+        <span style="text-align:right"><strong>1.0</strong> — Maximize acceptance<br>Route by issuer-PSP performance matrix</span>
+      </div>
+      <div class="callout amber" style="margin-top:16px">
+        <strong>Live example — Banco Mercantil del Norte, $870 MXN:</strong><br>
+        knob=<strong>1.0</strong> → <strong>psp-e</strong> (68.5% AR, fee $14.62 MXN)<br>
+        knob=<strong>0.0</strong> → <strong>psp-c</strong> (60.7% AR, fee $13.48 MXN)
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#f0fdf4">🛡️</span> Volume Guardrail</h2>
+      <p>Even at knob=0.0, the orchestrator will not send 100% of traffic to psp-c. A minimum percentage (default: 10%) is reserved for secondary PSPs so they stay operationally active and Aplazo avoids a single point of failure.</p>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#dbeafe">📤</span> What the orchestrator outputs per transaction</h2>
+      <table>
+        <thead><tr><th>Output field</th><th>What it means</th><th>Example</th></tr></thead>
+        <tbody>
+          <tr><td><code>recommended_psp</code></td><td>Which PSP to send to right now</td><td><code>psp-c</code></td></tr>
+          <tr><td><code>fallback_psps</code></td><td>Ordered list if primary fails</td><td><code>[psp-o, psp-e, psp-d]</code></td></tr>
+          <tr><td><code>retry</code></td><td>Should we attempt this at all?</td><td><code>True</code></td></tr>
+          <tr><td><code>retry_on_psp</code></td><td>If it fails, which PSP goes next?</td><td><code>psp-o</code></td></tr>
+          <tr><td><code>max_attempts</code></td><td>Total ceiling on attempts</td><td><code>5</code></td></tr>
+          <tr><td><code>stop_reason</code></td><td>If retry=False, why</td><td><code>hard decline: insufficient funds</code></td></tr>
+          <tr><td><code>expected_cost_pct</code></td><td>Fee % on recommended PSP</td><td><code>1.55%</code></td></tr>
+          <tr><td><code>expected_ar</code></td><td>Historical AR for this issuer on this PSP</td><td><code>81.2%</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CONSTRAINTS -->
+  <div id="constraints" class="section">
+    <div class="card">
+      <h2><span class="icon" style="background:#fee2e2">🚧</span> Scope boundaries</h2>
+      <div class="grid-2">
+        <div>
+          <div class="label red">Out of scope</div>
+          <ul class="spaced" style="margin-top:8px">
+            <li><strong>Alternative payment methods</strong> — SPEI, OXXO, digital wallets</li>
+            <li><strong>Latency optimization</strong> — no timing data available</li>
+            <li><strong>Independent fraud scoring</strong> — trusts error messages as-is</li>
+            <li><strong>Live ML model</strong> — rules derived from historical data, not real-time</li>
+            <li><strong>Merchant-level routing</strong> — no differentiation by store or product</li>
+          </ul>
+        </div>
+        <div>
+          <div class="label green">In scope</div>
+          <ul class="spaced" style="margin-top:8px">
+            <li>Card transactions on all 4 PSPs</li>
+            <li>Routing by card issuer, amount, gateway, and attempt history</li>
+            <li>Hard decline detection and immediate stop</li>
+            <li>Cron vs. user-initiated handling</li>
+            <li>Cost vs. acceptance rate trade-off via The Knob</li>
+            <li>Volume concentration guardrail</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#ffedd5">⚠️</span> Known data gaps</h2>
+      <table>
+        <thead><tr><th>Constraint</th><th>Impact</th><th>How it's handled</th></tr></thead>
+        <tbody>
+          <tr><td>psp-o and psp-d have no BIN data in events</td><td class="warn">Cannot do issuer routing for ~62% of volume</td><td>Treated as generic fallbacks only</td></tr>
+          <tr><td>Only 21.3% of card rows matched a BIN</td><td>Issuer routing works for minority of transactions</td><td>Falls back to global AR estimates</td></tr>
+          <tr><td>psp-c × cron shows 100% AR — likely pre-auth captures</td><td>May inflate psp-c cron metrics</td><td>Flagged; needs eng team confirmation</td></tr>
+          <tr><td>Error messages inconsistently formatted</td><td>"insufficient funds" has 6+ variants</td><td>Normalized with lowercase + substring match</td></tr>
+          <tr><td>No latency data</td><td>Cannot pick faster PSP when AR is equal</td><td>Excluded from scoring</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#dbeafe">📋</span> Open questions for Aplazo team</h2>
+      <ul class="spaced">
+        <li><strong>Why do psp-o and psp-d not log BIN numbers?</strong> Fixing this is the single biggest unlock for routing quality.</li>
+        <li><strong>What are the psp-c × cron 100% AR transactions?</strong> Pre-auth captures vs. real approvals changes psp-c's cron performance metrics.</li>
+        <li><strong>Are there contractual volume minimums per PSP?</strong> If yes, the guardrail must reflect those commitments.</li>
+        <li><strong>Is there a per-attempt cost on declines?</strong> Changes the retry math significantly if PSPs charge for failed submissions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div id="features" class="section">
+    <div class="card">
+      <h2><span class="icon" style="background:#f0fdf4">✅</span> Feature list — what was built</h2>
+      <table>
+        <thead><tr><th>#</th><th>Feature</th><th>File</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>F1</td><td>Data cleaning — normalize case, strip whitespace, handle nulls</td><td>step1_baseline.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F2</td><td>Approval rate at attempt-level AND installment-level</td><td>step1_baseline.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F3</td><td>AR cuts: by PSP, gateway, issuer, amount tier, hour, cross-tabs</td><td>step1_baseline.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F4</td><td>Retry analysis: AR per attempt # + error recovery rates</td><td>step1_baseline.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F5</td><td>Credit vs. debit split per PSP using BIN join</td><td>step1b_deep_dive.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F6</td><td>Volume concentration analysis across PSPs</td><td>step1b_deep_dive.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F7</td><td>Issuer × PSP approval rate matrix (top Mexican issuers)</td><td>step1b_deep_dive.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F8</td><td>PSP-switch-on-retry analysis</td><td>step1b_deep_dive.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F9</td><td>Hard decline detection — 12 error patterns, immediate stop</td><td>orchestrator.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F10</td><td>Retry cap policy per channel (cron/normal) and issuer risk tier</td><td>orchestrator.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F11</td><td>Issuer-aware PSP scoring with configurable knob (0.0–1.0)</td><td>orchestrator.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F12</td><td>Cron channel override — psp-e deprioritized for batch</td><td>orchestrator.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F13</td><td>Volume guardrail — minimum traffic share per secondary PSP</td><td>orchestrator.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F14</td><td>Full routing decision object with reasoning fields</td><td>orchestrator.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F15</td><td>Interactive web UI — live transaction simulation + explainability</td><td>app.py</td><td class="ok">✓ Done</td></tr>
+          <tr><td>F16</td><td>PSP fee reference and issuer AR matrix in UI</td><td>app.py</td><td class="ok">✓ Done</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <h2><span class="icon" style="background:#fffbeb">🚫</span> What v1 intentionally does NOT do — and the exact reason why</h2>
+      <p style="color:#64748b;margin-bottom:18px">These are not oversights. Each one was a deliberate decision. If the panel asks "why didn't you build X," the answer is here.</p>
+
+      <div style="border:1px solid #fde68a;border-radius:10px;padding:18px 20px;margin-bottom:14px;background:#fffbeb">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:6px">❌ No machine learning model</div>
+        <p><strong>Why we didn't build it:</strong> To train an ML model that predicts "which PSP should I use for this transaction?", you need examples where you tried the same transaction on different PSPs and saw both outcomes. That data does not exist. The March dataset only shows what happened on the PSP that was actually used. If we train ML on that, it learns "psp-c is always great" — because psp-c always got the good transactions routed to it. That's not intelligence, that's a circular loop.</p>
+        <p style="margin-top:8px"><strong>What unlocks it:</strong> Six months of A/B routing experiments — where we deliberately send 10% of traffic to random PSP assignment — generates the counterfactual data needed to train properly.</p>
+        <div class="callout blue" style="margin-top:10px"><strong>Roadmap:</strong> v3 — after A/B experiment data is collected. The rules-based system generates the training labels that ML needs.</div>
+      </div>
+
+      <div style="border:1px solid #fde68a;border-radius:10px;padding:18px 20px;margin-bottom:14px;background:#fffbeb">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:6px">❌ No issuer routing for 62% of transactions</div>
+        <p><strong>Why we can't do it:</strong> psp-o and psp-d — which together handle 62% of transaction volume — do not include the card's BIN number in their event data. The BIN is the first 6–8 digits of a card number that tells you which bank issued it. Without it, we cannot look up the issuer, and without the issuer, we cannot apply the issuer × PSP matrix. We route those transactions generically, exactly as today's static system does. No regression — just no improvement yet.</p>
+        <p style="margin-top:8px"><strong>What unlocks it:</strong> A one-time data pipeline fix — ask psp-o and psp-d to include BIN in their webhook payloads. This is the single highest-leverage infrastructure change available. Every day without it, 62% of volume routes blind.</p>
+        <div class="callout blue" style="margin-top:10px"><strong>Roadmap:</strong> v2 priority #1 — before any ML work, before any new PSP integrations.</div>
+      </div>
+
+      <div style="border:1px solid #fde68a;border-radius:10px;padding:18px 20px;margin-bottom:14px;background:#fffbeb">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:6px">❌ No real-time approval rate updates</div>
+        <p><strong>Why we didn't build it:</strong> The issuer × PSP matrix is refreshed monthly from the analysis scripts. If a PSP starts degrading on a Tuesday afternoon, the orchestrator won't reflect it until next month's refresh. Building a real-time metrics pipeline — streaming event processing, a metrics store, hourly recalculation — is significant infrastructure that would delay shipping v1 by weeks. The Δ Margin alert in the Observability layer catches degradation within 4 hours, which is good enough for v1.</p>
+        <p style="margin-top:8px"><strong>What unlocks it:</strong> A production metrics store connected to the live event stream. The analysis script logic already exists — it just needs to run hourly instead of monthly.</p>
+        <div class="callout blue" style="margin-top:10px"><strong>Roadmap:</strong> v1.5 — the first infrastructure upgrade after v1 is stable in production.</div>
+      </div>
+
+      <div style="border:1px solid #fde68a;border-radius:10px;padding:18px 20px;margin-bottom:14px;background:#fffbeb">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:6px">❌ No SPEI / WhatsApp fallback channel</div>
+        <p><strong>Why we didn't build it:</strong> The brief scope is card transactions. SPEI is a bank transfer — a different payment rail entirely. Integrating it requires a separate API connection, different error handling, different reconciliation. Scoping it into v1 would have made the card routing worse by splitting engineering focus. But the data strongly justifies it: admin-dashboard has 8.2% approval because agents are retrying dead cards. After 2 failures, the card is not the right instrument — SPEI or a WhatsApp payment link is.</p>
+        <div class="callout blue" style="margin-top:10px"><strong>Roadmap:</strong> v1.5 — highest-impact product change for late-stage collection. Doesn't require any PSP routing changes, just a channel switch trigger.</div>
+      </div>
+
+      <div style="border:1px solid #fde68a;border-radius:10px;padding:18px 20px;background:#fffbeb">
+        <div style="font-weight:700;font-size:1rem;margin-bottom:6px">❌ No customer-level memory across installments</div>
+        <p><strong>Why we didn't build it:</strong> The orchestrator sees each transaction in isolation. It does not know that this is the same customer's 3rd failed installment in a row, or that they have 4 more installments due. That context is in <code>loans_data-march2026.csv</code>, which we analyzed but did not wire into the routing engine for v1. Building it requires joining two data sources at request time, which adds latency and complexity. The routing rules work correctly without it — they just can't prioritize "this customer always pays eventually" over "this customer has never paid."</p>
+        <div class="callout blue" style="margin-top:10px"><strong>Roadmap:</strong> v2 — a lightweight customer reliability score from payment history. All the data is already in our pipeline. This turns the orchestrator from transaction-level intelligence to customer-level intelligence.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon" style="background:#dbeafe">🗺️</span> The full roadmap</h2>
+      <table>
+        <thead><tr><th>Version</th><th>What ships</th><th>Why this order</th></tr></thead>
+        <tbody>
+          <tr><td><strong>v1 (now)</strong></td><td>Rules-based routing · Hard decline stop · Knob · Guardrail · Cron rules</td><td>Establishes baseline, earns operator trust, stops the most obvious waste immediately</td></tr>
+          <tr><td><strong>v1.5</strong></td><td>Hourly AR refresh · SPEI/WhatsApp fallback trigger · Real-time Δ Margin alert</td><td>Closes the detection gap and adds the highest-ROI channel switch without touching routing core</td></tr>
+          <tr><td><strong>v2</strong></td><td>BIN logging fix on psp-o/psp-d · A/B routing experiment framework · Customer reliability score</td><td>BIN fix unlocks issuer routing for 62% of volume — the single biggest quality jump available</td></tr>
+          <tr><td><strong>v3</strong></td><td>ML-based PSP scoring · Multi-method orchestration (card + SPEI + OXXO) · Continuous learning</td><td>ML only makes sense after A/B data exists and the rules have proven which signals matter</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GLOSSARY -->
+  <div id="glossary" class="section">
+    <div class="card">
+      <h2><span class="icon" style="background:#f3f4f6">📖</span> Glossary</h2>
+      <table>
+        <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+        <tbody>
+          <tr><td><strong>BNPL</strong></td><td>Buy Now, Pay Later. A financing model where a customer pays in installments over time instead of upfront.</td></tr>
+          <tr><td><strong>PSP</strong></td><td>Payment Service Provider. A company that processes card transactions on behalf of a merchant. Examples: psp-c, psp-e, psp-o, psp-d.</td></tr>
+          <tr><td><strong>Installment</strong></td><td>One scheduled payment within a loan. A 6-installment loan has 6 due dates, each collected separately.</td></tr>
+          <tr><td><strong>Approval Rate (AR)</strong></td><td>The percentage of payment attempts that succeed (status = "complete"). Measured per attempt or per installment.</td></tr>
+          <tr><td><strong>BIN</strong></td><td>Bank Identification Number. The first 6–8 digits of a card that identify the issuing bank, card type, and brand.</td></tr>
+          <tr><td><strong>Issuer</strong></td><td>The bank that gave the customer their card (e.g., Nu MX, BBVA, Bancoppel).</td></tr>
+          <tr><td><strong>Cron / Batch</strong></td><td>An automated system that runs payment attempts in bulk overnight, with no user present. Identified by <code>collection_gateway = "cron"</code>.</td></tr>
+          <tr><td><strong>Hard Decline</strong></td><td>A failure caused by a permanent condition (no funds, card expired, fraud flag). Retrying will never succeed.</td></tr>
+          <tr><td><strong>Soft Decline</strong></td><td>A failure caused by a temporary condition (timeout, bank unavailable). Worth retrying.</td></tr>
+          <tr><td><strong>The Knob</strong></td><td>A 0.0–1.0 parameter controlling whether the orchestrator prioritizes lower fees (0.0) or higher approval rates (1.0).</td></tr>
+          <tr><td><strong>Volume Guardrail</strong></td><td>A minimum traffic floor (e.g., 10%) that prevents 100% of transactions going to one PSP, reducing concentration risk.</td></tr>
+          <tr><td><strong>Collection Gateway</strong></td><td>The entry point through which a payment was initiated: user checkout, agent dashboard, or automated cron batch.</td></tr>
+          <tr><td><strong>Attempt-level AR</strong></td><td>% of individual payment submissions that are approved. Low (26%) because many installments are retried multiple times.</td></tr>
+          <tr><td><strong>Installment-level AR</strong></td><td>% of installments where at least one attempt eventually succeeded. Higher (82.5%) because retries often recover failures.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- BLIND SPOTS -->
+  <div id="blindspots" class="section">
+
+    <div class="callout amber" style="margin-bottom:20px">
+      <strong>How to use this in the readout:</strong> Surface these proactively at the end of your roadmap presentation — before they ask. Say: <em>"To be fully transparent, any data-driven model is limited by what it can see. Let me walk you through six blind spots I identified that we need to address before pushing this live."</em> That sentence alone signals senior judgment.
+    </div>
+
+    <!-- BLIND SPOT 1 -->
+    <div class="card">
+      <h2><span class="icon" style="background:#fee2e2">🔄</span> 1. PSP Merchant Score Degradation — The Decline Spiral</h2>
+      <div class="label red">Silent risk not visible in the data</div>
+      <p>Every declined transaction Aplazo submits to a PSP is logged by that PSP's internal fraud engine. If our ratio of declines-to-approvals on a given PSP crosses an internal threshold, the PSP's risk system starts <strong>pre-declining transactions it would otherwise approve</strong> — treating Aplazo as a risky merchant. Our orchestrator has no concept of its own submission quality per PSP. It could be actively degrading psp-c's future performance by routing too many hard declines through it before the interceptor catches them.</p>
+      <div class="callout red">
+        <strong>Fix for v1.5:</strong> Track a <strong>submission health ratio</strong> per PSP: approvals / total submissions on a rolling 24-hour window. If it drops below a threshold, reduce volume to that PSP until it recovers — even if the scoring formula says otherwise.
+      </div>
+      <div class="callout blue" style="margin-top:8px">
+        <strong>What to say:</strong> "The orchestrator can't just be a greedy algorithm chasing the highest approval rate. It needs to protect the transaction pipeline quality of its best providers. A silently degraded psp-c is worse than a slightly lower-AR psp-e."
+      </div>
+    </div>
+
+    <!-- BLIND SPOT 2 -->
+    <div class="card">
+      <h2><span class="icon" style="background:#ffedd5">📊</span> 2. We Have loans_data and Aren't Using It</h2>
+      <div class="label orange">Data asset going to waste</div>
+      <p>The challenge handed us <code>loans_data</code> with loan status (DEFAULTED, active) and installment numbers. We never join it to the routing logic. Two immediate wins this unlocks:</p>
+      <ul class="spaced" style="margin:10px 0 10px 16px">
+        <li><strong>Zombie Account Elimination:</strong> If a loan is already marked DEFAULTED in our database, the orchestrator should automatically kill all retry loops. We are burning PSP submission overhead on accounts Aplazo has already written off.</li>
+        <li><strong>Installment Priority Scoring:</strong> Installment #1 on a new loan has high behavioral value (sets the repayment habit). Installment #8 on a loan already 3 months late has near-zero collection probability. The retry cap and routing aggressiveness should scale with installment strategic value, not be uniform.</li>
+      </ul>
+      <div class="callout green">
+        <strong>Fix for v1.5:</strong> JOIN <code>payment_events</code> on <code>loan_id</code> to bring in loan status and installment position as routing inputs. Zero new data collection required — it's already in our files.
+      </div>
+    </div>
+
+    <!-- BLIND SPOT 3 -->
+    <div class="card">
+      <h2><span class="icon" style="background:#ede9fe">🔐</span> 3. The 3DS Cron Veil — Authentication Failures Masking as Declines</h2>
+      <div class="label purple">Hypothesis backed by cron AR pattern</div>
+      <p>For certain issuers and amounts above a threshold, Visa/Mastercard requires <strong>3DS authentication</strong> — an SMS code or in-app biometric confirmation. In a cron batch, no user is present to complete that step. Those transactions fail at the authentication layer, not the authorization layer — and they show up in our data as <em>generic bank declines</em>. We are counting them as PSP failures when they are actually a channel mismatch.</p>
+      <p>This means our cron AR of 30.4% may be artificially suppressed by 3DS failures that no PSP change can fix.</p>
+      <div class="callout amber">
+        <strong>Fix for v1.5:</strong> Identify issuer + amount bands that consistently trigger 3DS (BBVA credit above ~$2,000 MXN is a common profile in Mexico). Exclude these from cron routing entirely. Flag them for user-present re-initiation via push notification. Don't keep hammering a gate that requires a human to open it.
+      </div>
+      <div class="callout blue" style="margin-top:8px">
+        <strong>What to say:</strong> "Our data shows cron converts at 30.4%. The assumption is that this is a processor issue. My hypothesis is that a significant portion of these failures are invisible 3DS authentication timeouts — a channel problem, not a PSP problem. That's a fundamentally different fix."
+      </div>
+    </div>
+
+    <!-- BLIND SPOT 4 -->
+    <div class="card">
+      <h2><span class="icon" style="background:#f0fdf4">📅</span> 4. March Data Has Semana Santa — Possible Seasonal Overfit</h2>
+      <div class="label green">Analytical honesty the panel will respect</div>
+      <p>Our entire routing model is calibrated on <strong>one month: March 2026</strong>. March contains Semana Santa — the largest consumer spending and travel period in Mexico. Cards are used differently: higher balances drawn down, more international transactions, different bank fraud patterns. The issuer × PSP approval rates we are using as routing rules may be specific to Easter-week behavior.</p>
+      <div class="callout amber">
+        <strong>What this means:</strong> A routing model that works well in March may underperform in January (post-Christmas debt hangover), September (back-to-school spending), or December (holiday peak). Before production rollout, validate the issuer-PSP performance matrix against at least 3 non-adjacent, operationally normal months.
+      </div>
+      <div class="callout blue" style="margin-top:8px">
+        <strong>What to say:</strong> "We must acknowledge a core analytical boundary: this data is one month, and it's not a representative month. Before we push this live, we validate against non-holiday months to confirm the routing rules are structurally stable — not Semana Santa artifacts."
+      </div>
+    </div>
+
+    <!-- BLIND SPOT 5 -->
+    <div class="card">
+      <h2><span class="icon" style="background:#dbeafe">💳</span> 5. Card Token Staleness — "Invalid Card" ≠ Customer Won't Pay</h2>
+      <div class="label blue">User intent hidden behind an error code</div>
+      <p>When the orchestrator sees "invalid card or card type," it correctly stops retrying — recovery rate is 0% for that token. But a senior PM asks: <strong>why is the card invalid?</strong> In many cases, it's not that the customer is unwilling to pay. It's that they received a replacement card (expired, lost, bank-issued fraud replacement) and their old token stored in Aplazo's vault is stale. A perfectly willing customer with a new valid card is being permanently abandoned.</p>
+      <div class="callout green">
+        <strong>Fix for v1.5:</strong> When "invalid card" fires on an installment that previously succeeded (the customer did pay before), trigger a <strong>re-tokenization request</strong> via WhatsApp or push notification — not a retry on the dead token. The action is "update your card details," not "try the charge again." Zero PSP cost, potential full recovery.
+      </div>
+    </div>
+
+    <!-- BLIND SPOT 6 -->
+    <div class="card">
+      <h2><span class="icon" style="background:#f0fdf4">👥</span> 6. Multi-Installment Memory — We Treat Each Attempt in Isolation</h2>
+      <div class="label green">Cross-installment signal available in our data</div>
+      <p>The orchestrator currently treats every payment attempt as an independent event. But consumer credit risk is highly correlated across installments. If a customer fails installment #3, they are very likely to fail installment #4 on the same card. We never join on <code>customer_id</code> across installments to share the signal.</p>
+      <ul class="spaced" style="margin:10px 0 10px 16px">
+        <li>Customer with 2+ consecutive cron failures → downgrade all remaining installments to "user-present only, no cron" and trigger a proactive WhatsApp outreach</li>
+        <li>Customer with consistent on-time history → allow higher retry cap (lower risk, proven behavior)</li>
+      </ul>
+      <div class="callout green">
+        <strong>Fix for v2:</strong> Build a lightweight customer reliability score from <code>payment_events</code> grouped by <code>customer_id</code>. All inputs are already in our data. This is a cross-installment memory layer that makes the orchestrator context-aware at the customer level, not just the transaction level.
+      </div>
+    </div>
+
+    <!-- CRITIQUE OF THE BRIEF'S OWN POINTS -->
+    <div class="card" style="border-left:4px solid #1a1a2e">
+      <h2><span class="icon" style="background:#1a1a2e;color:white">🎯</span> How to Handle the Brief's Own 4 Blind Spot Suggestions</h2>
+      <p style="color:#6b7280;font-size:12px">This is your sharpest weapon. Showing you can critically evaluate the challenge's own framing signals senior judgment.</p>
+
+      <div style="margin-top:14px">
+        <div class="label green">✅ Quincena Timing — Lead with this</div>
+        <p>The payroll cycle insight (retry on the 15th and 30th instead of daily) is genuinely brilliant and hyper-local. It proves you know how the Mexican market works. Lead with this in the roadmap section.</p>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="label orange">🔄 Velocity Fraud — Redirect cleanly</div>
+        <div class="callout amber" style="margin-top:6px">
+          <strong>Say:</strong> "Velocity fraud is a real operational risk, but placing it inside the orchestrator is a scope trap. Velocity rate-limiting belongs in our proxy API gateway layer — upstream of the orchestrator entirely. The orchestrator trusts the output of our risk firewall as a given. Conflating routing logic with fraud detection makes both systems harder to maintain and audit."
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="label blue">✅ Per-Attempt Decline Fees — Handle with precision</div>
+        <div class="callout blue" style="margin-top:6px">
+          <strong>Say:</strong> "The pricing matrix provided explicitly marks decline fees as '—' for all four PSPs — zero cost on rejections per our current contracts. I validated this. However, I flagged it as a high-priority contract monitoring item. If any PSP introduces even a $0.10 MXN per-request network fee on declines, our retry cap math changes immediately, and our Hard Decline Interceptor becomes even more economically valuable than it already is."
+        </div>
+      </div>
+
+      <div style="margin-top:14px">
+        <div class="label red">⚠ Issuer Performance Shift (30-min window) — Valid but frame it right</div>
+        <p>The real-time drift detection idea is correct — a static matrix won't catch a PSP degrading mid-day. Frame it as part of the Observability roadmap (the Δ Margin alert catches it within 4 hours in v1, the 30-minute window is a v1.5 enhancement) rather than a current gap that breaks the v1 design.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PSP PROFILES -->
+  <div id="psps" class="section">
+
+    <div class="callout blue" style="margin-bottom:20px">
+      <strong>Important context:</strong> The names psp-c, psp-e, psp-o, and psp-d are <strong>Aplazo's internal codenames</strong> for their payment processor partners — the real company names are not disclosed in the challenge data. Think of them like "Supplier A / B / C / D." What matters is their performance profile, not their real name. Here is what the data tells us about each one.
+    </div>
+
+    <div class="psp-card primary">
+      <div class="psp-name" style="color:#166534">psp-c — The Workhorse</div>
+      <div class="psp-role" style="color:#166534">Primary PSP · Best in class on every metric</div>
+      <div class="psp-stats">
+        <div class="stat"><div class="val" style="color:#166534">73.4%</div><div class="lbl">Approval Rate</div></div>
+        <div class="stat"><div class="val" style="color:#166534">1.55%</div><div class="lbl">Fee (cheapest)</div></div>
+        <div class="stat"><div class="val" style="color:#166534">✅</div><div class="lbl">BIN data logged</div></div>
+        <div class="stat"><div class="val" style="color:#166534">18.8%</div><div class="lbl">Current traffic share</div></div>
+      </div>
+      <div class="psp-note">The standout performer: <strong>cheapest AND best approval rate</strong>. Also the only PSP that logs BIN data alongside psp-e, enabling issuer-level routing intelligence. Debit cards approve at 76.7%, credit at 62.4%. Strong across all Mexican issuers — Nu MX approves at 81.2%, Bancoppel at 80.9%, Uala at 84.8%.</div>
+      <div class="why-row">
+        <span class="why-tag">Default first choice</span>
+        <span class="why-tag">Best for cron batch</span>
+        <span class="why-tag">Best for high-value tickets</span>
+        <span class="why-tag">Strong on debit cards</span>
+      </div>
+    </div>
+
+    <div class="psp-card secondary">
+      <div class="psp-name" style="color:#1d4ed8">psp-e — The Specialist</div>
+      <div class="psp-role" style="color:#1d4ed8">Secondary PSP · Use only when issuer data says so</div>
+      <div class="psp-stats">
+        <div class="stat"><div class="val" style="color:#1d4ed8">55.8%</div><div class="lbl">Approval Rate</div></div>
+        <div class="stat"><div class="val" style="color:#1d4ed8">1.68%</div><div class="lbl">Fee</div></div>
+        <div class="stat"><div class="val" style="color:#1d4ed8">✅</div><div class="lbl">BIN data logged</div></div>
+        <div class="stat"><div class="val" style="color:#1d4ed8">19.2%</div><div class="lbl">Current traffic share</div></div>
+      </div>
+      <div class="psp-note">Higher fee and lower average AR than psp-c — but it <strong>wins for specific issuers</strong>. Banco Mercantil del Norte approves at 68.5% on psp-e vs. 60.7% on psp-c. That 7.8 percentage point difference justifies the higher fee. The key weakness: psp-e collapses on credit cards (29.9% AR) and on cron batch (29–35% AR). Never the default — only when the issuer matrix says it wins.</div>
+      <div class="why-row">
+        <span class="why-tag">Banco Mercantil del Norte</span>
+        <span class="why-tag">Debit cards only</span>
+        <span class="why-tag">Avoid on cron</span>
+        <span class="why-tag">Avoid for credit cards</span>
+      </div>
+    </div>
+
+    <div class="psp-card warning">
+      <div class="psp-name" style="color:#92400e">psp-o — The Overused Fallback</div>
+      <div class="psp-role" style="color:#92400e">Generic fallback · Currently over-allocated</div>
+      <div class="psp-stats">
+        <div class="stat"><div class="val" style="color:#92400e">49.8%</div><div class="lbl">Approval Rate</div></div>
+        <div class="stat"><div class="val" style="color:#92400e">1.58%</div><div class="lbl">Fee</div></div>
+        <div class="stat"><div class="val" style="color:#ef4444">❌</div><div class="lbl">No BIN data</div></div>
+        <div class="stat"><div class="val" style="color:#92400e">54.8%</div><div class="lbl">Current traffic share</div></div>
+      </div>
+      <div class="psp-note">The biggest opportunity in the data. psp-o currently processes <strong>54.8% of all card volume</strong> but has a below-average 49.8% AR — while psp-c (cheaper, better AR) handles only 18.8%. The static routing logic over-relies on psp-o by default. <strong>Critical data gap: psp-o does not log BIN numbers</strong>, so we cannot do issuer-level routing through it. Its role in the orchestrator is strictly a volume backstop — never a first choice.</div>
+      <div class="why-row">
+        <span class="why-tag">Volume guardrail backstop</span>
+        <span class="why-tag">No issuer routing possible</span>
+        <span class="why-tag">Currently over-used</span>
+      </div>
+    </div>
+
+    <div class="psp-card danger">
+      <div class="psp-name" style="color:#991b1b">psp-d — The Last Resort</div>
+      <div class="psp-role" style="color:#991b1b">Worst performer · Last-resort fallback only</div>
+      <div class="psp-stats">
+        <div class="stat"><div class="val" style="color:#991b1b">33.0%</div><div class="lbl">Approval Rate</div></div>
+        <div class="stat"><div class="val" style="color:#991b1b">1.69%</div><div class="lbl">Fee (most expensive)</div></div>
+        <div class="stat"><div class="val" style="color:#ef4444">❌</div><div class="lbl">No BIN data</div></div>
+        <div class="stat"><div class="val" style="color:#991b1b">7.2%</div><div class="lbl">Current traffic share</div></div>
+      </div>
+      <div class="psp-note">The worst combination: <strong>lowest approval rate AND highest fee</strong>. Also no BIN logging, so no issuer routing. psp-d exists in the orchestrator only as a last-resort fallback when all other PSPs are unavailable or over the guardrail cap. In a healthy system it should receive the minimum guardrail floor (e.g., 5–10%) just to keep the connection alive — and nothing more.</div>
+      <div class="why-row">
+        <span class="why-tag">Last resort only</span>
+        <span class="why-tag">Keep connection warm</span>
+        <span class="why-tag">Never route first</span>
+        <span class="why-tag">No BIN routing possible</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:8px">
+      <h2><span class="icon" style="background:#f3f4f6">💡</span> Why do the names end in letters (-c, -e, -o, -d)?</h2>
+      <p>These are <strong>Aplazo's anonymized internal codenames</strong> for their payment processor partners. The challenge data redacts the real company names intentionally — all candidates work with the same anonymized dataset so no one has an unfair advantage from knowing a PSP's real identity.</p>
+      <p>The letters themselves have no inherent meaning (they're not abbreviations of company names). What matters is their <strong>performance profile</strong>: their fee rate, their approval rate by issuer and card type, and whether they log BIN data. That is everything you need to route intelligently.</p>
+      <div class="callout amber" style="margin-top:10px">
+        <strong>If the panel asks "what is psp-c?"</strong> — say: "The data refers to PSPs by anonymized codes. psp-c is the processor with the best approval rate (73.4%) and the lowest fee (1.55%), which is why the orchestrator defaults to it. We don't need to know its real name to route correctly — we route on data, not on brand."
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PANEL PREP -->
+  <div id="panelprep" class="section">
+
+    <div class="callout blue" style="margin-bottom:4px">
+      <strong>How to use this tab:</strong> Click any question to expand the talking points and the script. Arrive at the readout with this open on a second screen or printed. Every answer points to a specific tab in the Streamlit app so you can demo live.
+    </div>
+
+    <button class="expand-all-btn" onclick="toggleAll()">Expand All Questions</button>
+
+    <!-- CATEGORY: PRODUCT STRATEGY -->
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280;margin:16px 0 8px">💼 Product Strategy & The Knob</p>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num">1</div>
+        <div><div class="qa-question">"How did you arrive at your definition of 'Value' for this orchestrator?"</div><div class="qa-category">Core PM judgment</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">📐 Open: Scoring Formula tab</div>
+        <div class="qa-script">Value is not just a high approval rate, and it's not just low fees — those are opposing forces. I defined value as <strong>Net Recovery Margin</strong>: the expected revenue we collect from an installment after subtracting processing fees, weighted by the probability the transaction actually succeeds. The scoring formula makes this concrete: Score = (knob × AR) + (1−knob × cost efficiency). This means every routing decision is a mathematical trade-off on the cost/acceptance frontier, not a gut call.</div>
+        <div class="qa-tip">💡 Point to the formula on screen. Say "this is not a black box — every decision is traceable to this equation."</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num">2</div>
+        <div><div class="qa-question">"If The Knob is at 0.5, how does the system choose between a PSP with higher fees but better approval rates?"</div><div class="qa-category">Scoring logic</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">📐 Open: Scoring Formula tab → show the fee reference table</div>
+        <div class="qa-script">At 0.5 the formula weighs cost and AR equally. Let's take a real example: for a Banco Mercantil del Norte card, psp-e has a 68.5% approval rate vs. psp-c's 60.7% — a 7.8 percentage point advantage. But psp-e charges 1.68% vs psp-c's 1.55% — 8.4% more expensive in relative terms. At knob=0.5 the AR advantage outweighs the cost penalty, so psp-e wins. Switch to knob=0.0 and psp-c wins because cost dominates. You can see this live in the Simulator right now.</div>
+        <div class="qa-tip">💡 Switch to Simulator tab, select Banco Mercantil del Norte, toggle the knob between 0.0 and 1.0. Show the recommended PSP flipping.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num">3</div>
+        <div><div class="qa-question">"What happens if the finance team slides The Knob all the way to 0.0?"</div><div class="qa-category">Operator controls</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">⚡ Open: Simulator tab → set knob to 0.0</div>
+        <div class="qa-script">At 0.0, the AR term drops to zero in the formula. The engine ignores approval rate differences entirely and routes everything to psp-c — our cheapest processor at 1.55%. Even if another PSP would approve 10% more transactions for a specific issuer, the system won't use it. This mode makes sense during aggressive cost-cutting periods or when margins are tight — but it sacrifices collection revenue. That's the explicit trade-off the operator is making when they move the knob.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num">4</div>
+        <div><div class="qa-question">"What if PSP-C goes down completely during peak hours? What does your system do?"</div><div class="qa-category">Resilience & failure modes</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">🗺️ Open: Product Story tab → Operator workflow table</div>
+        <div class="qa-script">Two protections. First, the Volume Guardrail — I set a minimum traffic floor per secondary PSP (default 10%), which means psp-o and psp-e are always receiving some traffic. Their connections stay warm, not cold. If psp-c goes down, the operator slides the guardrail to 0% for psp-c and raises it for the others — no code deploy, no engineering ticket, recovers in under 2 minutes. Second, the Δ Margin alert fires automatically when psp-c's real-time AR drops to zero, flagging the outage before the operator even notices it manually.</div>
+        <div class="qa-tip">💡 This is where you contrast old vs. new: "Before: on-call engineer wakes up at 2am, edits env vars, redeploys. Now: operator slides the guardrail."</div>
+      </div>
+    </div>
+
+    <!-- CATEGORY: DATA -->
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280;margin:20px 0 8px">📊 Data Depth & Technical Questions</p>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num orange">5</div>
+        <div><div class="qa-question">"What was the most non-obvious pattern you found in the data?"</div><div class="qa-category">Analytical depth</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">📊 Open: Data Findings tab → Finding 4 (Retry myth) + Finding 2 (Credit/Debit)</div>
+        <div class="qa-script">Two things surprised me. First: <strong>switching PSPs on retry does nothing</strong>. Same PSP retry: 50.6% AR. Switched PSP: 50.5% AR. Statistically identical across half a million retry attempts. The whole industry assumption that "try a different rail" rescues a declined card is not supported by this data. What matters is the error type, not the PSP. Second: on psp-c, <strong>debit cards approve better than credit cards</strong> (76.7% vs 62.4%). That's counterintuitive — credit cards usually have higher limits and more fraud protection. It suggests Aplazo's debit card base includes banks with pre-authorized BNPL agreements, while credit cards face more fraud-check friction.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num orange">6</div>
+        <div><div class="qa-question">"Why does cron get separate logic? Why not treat it like any other payment?"</div><div class="qa-category">Cron handling</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">📊 Open: Data Findings tab → Finding 3 (Cron gateway)</div>
+        <div class="qa-script">Cron is fundamentally different from user-initiated payments in three ways. One: <strong>no user is present</strong> — if the card fails, nobody can fix it in the moment. There's no "try another card" option. Two: <strong>latency is irrelevant</strong> — the user is asleep at 3am, so whether the transaction takes 200ms or 2 seconds changes nothing. Three: <strong>the AR profile is completely different</strong> — cron has a 30.4% baseline AR vs. 78.8% for checkout. psp-e is especially bad on cron (29–35% AR). So the orchestrator runs cron on a restricted set of PSPs (psp-c and psp-o only), with a tighter retry cap of 3 instead of 5, to stop bleeding fee overhead on dead accounts.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num orange">7</div>
+        <div><div class="qa-question">"You said psp-o and psp-d don't log BIN data. How is that even possible, and what does it mean for routing?"</div><div class="qa-category">Data quality</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">📊 Open: Data Findings tab → Data Quality Issues table</div>
+        <div class="qa-script">It means those PSPs don't pass the card BIN back in their event webhook payloads — or they strip it before logging. This is a data pipeline gap on their side, not ours. The practical consequence is severe: <strong>62% of our transaction volume flows through PSPs where we have zero card-level intelligence</strong>. We know the amount, the outcome, the gateway — but not which bank issued the card. So the orchestrator cannot apply issuer routing to psp-o or psp-d. They get treated as generic fallbacks ranked only by their global average AR. Fixing this — getting psp-o and psp-d to log BIN data — is the single highest-leverage infrastructure change for v2. It would unlock issuer routing for the majority of our volume.</div>
+        <div class="qa-tip">💡 Frame this as a finding you surfaced, not a flaw you didn't fix. "I identified this gap and it's explicitly in our v2 roadmap."</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num orange">8</div>
+        <div><div class="qa-question">"Walk me through a single transaction end-to-end through your system."</div><div class="qa-category">Live demo — most likely asked</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">⚡ Open: Simulator tab — use Nu MX, $1,450 MXN, nextpayment gateway, attempt #1</div>
+        <div class="qa-script">Let me show you a real example. Nu MX card, $1,450 MXN installment, user-initiated checkout, first attempt. The orchestrator runs three checks in sequence. First: is there a prior error message? No — so no hard decline intercept. Second: are we at the retry cap? No — attempt 1 of max 5. Third: score every PSP. For Nu MX, the issuer matrix shows psp-c at 81.2% AR and psp-e at just 15.8% — a 65 percentage point gap. Even at knob=0.0 (pure cost mode), psp-c wins because it's also the cheapest. So the recommendation is psp-c, expected AR 81.2%, fee $22.48 MXN if approved. Fallback order is psp-o then psp-e last, because we never send Nu MX to psp-e unless all other options are exhausted. You can see all of this in the scoring table right here.</div>
+      </div>
+    </div>
+
+    <!-- CATEGORY: GUARDRAILS -->
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280;margin:20px 0 8px">🛡️ Guardrails, Monitoring & Failure Modes</p>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num red">9</div>
+        <div><div class="qa-question">"What is your biggest fear about deploying this v1, and how do you protect against it?"</div><div class="qa-category">Senior judgment</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">🗺️ Product Story tab → Failure Modes table + 🔭 Observability tab</div>
+        <div class="qa-script">Volume concentration. If the scoring math works perfectly, 100% of traffic goes to psp-c. That sounds great until psp-c has a 2am outage and our backup PSPs haven't processed a real transaction in weeks — their connections to the banking rails go cold. We also may have contractual volume minimums with psp-o that we'd be violating. The Volume Guardrail is the direct protection: a hard floor that ensures secondary PSPs always receive a minimum share of traffic. The Δ Margin alert is the detection layer: if psp-c goes down and our collection revenue drops below baseline on a 4-hour window, we automatically revert to static routing while the team investigates.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num red">10</div>
+        <div><div class="qa-question">"When would your orchestrator make a worse decision than today's static routing?"</div><div class="qa-category">Honest trade-offs</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">🗺️ Product Story tab → Failure Modes table</div>
+        <div class="qa-script">Three scenarios. One: <strong>stale AR matrix</strong>. If a PSP degrades after our last monthly data refresh, the orchestrator still routes to it as if it were healthy. The mitigation is the real-time Δ Margin alert — we catch it within 4 hours, not next month. Two: <strong>new issuers with no history</strong>. A card from a bank not in our BIN table gets no issuer routing — it falls back to psp-c by default, which is still better than random routing but not optimal. Three: <strong>the psp-c × cron artifact</strong>. Our data shows 100% approval rate for psp-c on cron, which is almost certainly pre-auth captures being counted as approvals. If we trust that number, we'd over-route cron to psp-c. We flagged this and need engineering to confirm the transaction type before production rollout.</div>
+        <div class="qa-tip">💡 Saying this out loud shows senior honesty. The panel respects that you know where your own system breaks.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num red">11</div>
+        <div><div class="qa-question">"You have a hard decline interceptor. How do you know 'insufficient funds' will never recover?"</div><div class="qa-category">Data validation</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">📊 Data Findings tab → Retry Analysis section</div>
+        <div class="qa-script">The data is unambiguous. Across 518,075 attempts with the error "the card doesn't have sufficient funds," the next-attempt recovery rate is exactly 0.0%. Same for fraud risk detected: 93,023 occurrences, 0% recovery. I validated this across all variants of the string — "insufficient funds," "INSUFFICIENT_FUNDS," "fondos insuficientes" — because the data has case and language inconsistencies. After normalizing, every variant resolves to the same 0% recovery pattern. The economic logic is also straightforward: if someone doesn't have money in their account right now, retrying the same card 10 minutes later won't change their account balance. The only scenario where it would recover is if they topped up their account between attempts — which happens rarely enough that the retry cost exceeds the expected recovery value.</div>
+      </div>
+    </div>
+
+    <!-- CATEGORY: PRODUCT NARRATIVE -->
+    <p style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280;margin:20px 0 8px">🗺️ Product Narrative & Roadmap</p>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num green">12</div>
+        <div><div class="qa-question">"Why rules-based v1 instead of jumping straight to ML?"</div><div class="qa-category">Build strategy</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">🗺️ Product Story tab → Configuration Model section</div>
+        <div class="qa-script">Three reasons. First: <strong>trust</strong>. An ML model is a black box to the payments ops team. If it makes a wrong decision at 2am, they can't audit it. A rules-based system is fully transparent — every decision traces back to a formula and a data observation. Trust has to come before complexity. Second: <strong>data for counterfactuals</strong>. To train an ML model that predicts "what would psp-e's AR be for this transaction if we had routed it there instead of psp-c?", we need split routing experiments. We don't have that data yet. Third: <strong>the rules already capture most of the signal</strong>. The issuer × PSP matrix explains the majority of approval rate variance. An ML model that learns what the matrix already knows isn't worth the operational complexity in v1. ML is explicitly on the v2 roadmap — after we run A/B experiments and collect the counterfactual data needed to train it properly.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num green">13</div>
+        <div><div class="qa-question">"What does the operator's day-to-day look like with this system in place?"</div><div class="qa-category">Operator experience</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">🗺️ Product Story tab → Operator workflow table</div>
+        <div class="qa-script">Before: the payments ops lead starts every Monday reviewing a static report, notices AR dropped on Bancoppel cards last week, files a ticket to engineering, waits two weeks for the fix to ship. They're reactive and blocked by the engineering queue for every routing change. After: they open the Streamlit dashboard, see an alert that Bancoppel's AR dropped 8 percentage points, click into the simulator to confirm the routing decision for Bancoppel cards, and adjust the routing rule directly — no ticket, no code deploy. If a new PSP contract comes in with a better fee, they update the fee table and the scoring formula recalculates immediately. Their job shifts from "fire-fighting routing incidents" to "managing the optimization frontier proactively."</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num green">14</div>
+        <div><div class="qa-question">"What would you do first if you had 30 more days after this prototype?"</div><div class="qa-category">Prioritization</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">🔭 Observability tab → Roadmap table</div>
+        <div class="qa-script">Two things, in order. First: <strong>get psp-o and psp-d to log BIN data</strong>. This is a one-time data pipeline fix that unlocks issuer routing for 62% of our volume — by far the highest-leverage change available. Every day we don't have this, we're routing the majority of our transactions blindly. Second: <strong>run an A/B split routing experiment</strong>. Right now we can't measure the true lift from the orchestrator because we're comparing against a hypothetical baseline. I'd split 10% of traffic to run on static legacy routing and measure Δ Margin in real time. That gives us the hard revenue number to justify v2 investment and the counterfactual data to eventually train an ML model.</div>
+      </div>
+    </div>
+
+    <div class="qa-card">
+      <div class="qa-header" onclick="toggle(this)">
+        <div class="qa-num green">15</div>
+        <div><div class="qa-question">"You mentioned admin-dashboard has only 8.2% AR. What do you do about that?"</div><div class="qa-category">Product intuition</div></div>
+      </div>
+      <div class="qa-body">
+        <div class="qa-where">📊 Data Findings tab → Finding 3 (Gateway table)</div>
+        <div class="qa-script">The 8.2% AR on admin-dashboard isn't a PSP problem — it's a behavioral pattern. Agents are manually retrying cards belonging to customers who are already 2–3 installments behind. Those customers have either drained their account, blocked the card, or both. The card is the wrong channel for them at that point. The product recommendation is a channel switch, not a better PSP: after two agent-dashboard failures on the same card, automatically send the customer a WhatsApp payment link with a SPEI transfer option. SPEI reaches a different funding source entirely — it doesn't depend on the card balance. That's a v1.5 feature that could meaningfully move the needle on late-stage collection without any PSP routing changes at all.</div>
+        <div class="qa-tip">💡 This shows product thinking beyond the technical scope of the challenge — it's the kind of "so what" the panel wants to see.</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+function toggle(header) {
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+function toggleAll() {
+  const bodies = document.querySelectorAll('.qa-body');
+  const anyOpen = [...bodies].some(b => b.classList.contains('open'));
+  bodies.forEach(b => anyOpen ? b.classList.remove('open') : b.classList.add('open'));
+  document.querySelector('.expand-all-btn').textContent = anyOpen ? 'Expand All Questions' : 'Collapse All';
+}
+</script>
+</body>
+</html>

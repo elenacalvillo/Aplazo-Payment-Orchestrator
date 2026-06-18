@@ -1,0 +1,19 @@
+# Data files — not included in repo (confidential challenge data)
+*.csv
+*.xlsx
+*.xls
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# OS
+.DS_Store
+
+# Backups
+*.bak
